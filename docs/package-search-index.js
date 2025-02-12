@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"io.github.jorgericovivas.rust_essentials"},{"l":"io.github.jorgericovivas.rust_essentials.option"},{"l":"io.github.jorgericovivas.rust_essentials.result"},{"l":"io.github.jorgericovivas.rust_essentials.tuples"}];updateSearchResults();
