@@ -4,6 +4,7 @@ import io.github.jorgericovivas.rust_essentials.result.Ok;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -23,7 +24,7 @@ import static java.util.Objects.requireNonNull;
  * @author Jorge Rico Vivas
  * @see Option
  */
-public record Some<T>(@NotNull T value) implements Option<T> {
+public record Some<T>(@NotNull T value) implements Option<T>, Serializable {
 
     /**
      * Default constructor requiring value to not be null.

@@ -6,6 +6,7 @@ import io.github.jorgericovivas.rust_essentials.result.Result;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
@@ -72,8 +73,8 @@ import static java.util.Objects.requireNonNull;
  * @param <T> Value type.
  * @author Jorge Rico Vivas
  */
-public sealed interface Option<T> permits Some, None {
-
+public sealed interface Option<T> extends Serializable permits Some, None {
+    
     /**
      * Turns this value to an option, meaning it will be {@link None} if it is a null value, or {@link Some} otherwise.
      *
@@ -104,14 +105,14 @@ public sealed interface Option<T> permits Some, None {
             return new None<>();
         }
         var isSpecialValue = Arrays.stream(specialValues)
-                .filter(Objects::nonNull)
-                .anyMatch(value::equals);
+                                   .filter(Objects::nonNull)
+                                   .anyMatch(value::equals);
         if (isSpecialValue) {
             return new None<>();
         }
         return new Some<>(value);
     }
-
+    
     /**
      * Turns this {@link Optional} to an {@link Option}, meaning it will be {@link None} if it is a null value or empty,
      * or {@link Some} otherwise.
@@ -147,7 +148,7 @@ public sealed interface Option<T> permits Some, None {
         }
         return Option.of(value.get(), specialValues);
     }
-
+    
     /**
      * Converts from {@link Option}&lt;{@link Option}&lt;T&gt;&gt; to {@link Option}&lt;T&gt;.
      *
@@ -172,7 +173,7 @@ public sealed interface Option<T> permits Some, None {
         }
         return new None<>();
     }
-
+    
     /**
      * Transposes an {@link Option} of a {@link Result} into a {@link Result} of an {@link Option}.
      * <p>
@@ -209,7 +210,7 @@ public sealed interface Option<T> permits Some, None {
         E error = requireNonNull(requireNonNull(option.unwrap()).unwrapErr());
         return new Err<>(error);
     }
-
+    
     /**
      * Turns this value into {@link Some}, and it is the same as using {@link Some}'s default constructor.
      *
@@ -229,7 +230,7 @@ public sealed interface Option<T> permits Some, None {
     static <T> Some<T> some(@NotNull final T value) {
         return new Some<>(requireNonNull(value));
     }
-
+    
     /**
      * Creates a {@link None}, and it is the same as using {@link None}'s default constructor.
      *
@@ -248,7 +249,7 @@ public sealed interface Option<T> permits Some, None {
     static <T> None<T> none() {
         return new None<>();
     }
-
+    
     /**
      * Returns true if the option is a Some value.
      *
@@ -263,7 +264,7 @@ public sealed interface Option<T> permits Some, None {
      * @return true if the option is a Some value.
      */
     boolean isSome();
-
+    
     /**
      * Returns true if the option is a Some and the value inside of it matches a predicate.
      *
@@ -280,7 +281,7 @@ public sealed interface Option<T> permits Some, None {
      */
     @SuppressWarnings("unused")
     boolean isSomeAnd(@NotNull final Predicate<T> predicate);
-
+    
     /**
      * Returns true if the option is a None value.
      *
@@ -295,7 +296,7 @@ public sealed interface Option<T> permits Some, None {
      * @return true if the option is a None value.
      */
     boolean isNone();
-
+    
     /**
      * Maps an Option&lt;T&gt; to Option&lt;U&gt; by applying a function to a contained value (if Some) or returns
      * None (if None).
@@ -314,7 +315,7 @@ public sealed interface Option<T> permits Some, None {
      */
     @NotNull
     <U> Option<U> map(@NotNull final Function<T, U> mapper);
-
+    
     /**
      * Returns the provided default result (if none), or applies a function to the contained value (if any).
      * <p>
@@ -337,7 +338,7 @@ public sealed interface Option<T> permits Some, None {
      */
     @NotNull
     <U> U mapOr(@NotNull final U defaultValue, @NotNull final Function<T, U> mapper);
-
+    
     /**
      * Computes a default function result (if none), or applies a different function to the contained value (if any).
      *
@@ -358,7 +359,7 @@ public sealed interface Option<T> permits Some, None {
      */
     @NotNull
     <U> U mapOrElse(@NotNull final Supplier<U> defaultValue, @NotNull final Function<T, U> mapper);
-
+    
     /**
      * Transforms the Option&lt;T&gt; into a Result&lt;T, E&gt;, mapping Some(v) to Ok(v) and None to Err(err).
      * <p>
@@ -382,7 +383,7 @@ public sealed interface Option<T> permits Some, None {
     @SuppressWarnings("unused")
     @NotNull
     <E> Result<T, E> okOr(@NotNull final E error);
-
+    
     /**
      * Transforms the Option&lt;T&gt; into a Result&lt;T, E&gt;, mapping Some(v) to Ok(v) and None to Err(err()).
      *
@@ -404,7 +405,7 @@ public sealed interface Option<T> permits Some, None {
     @SuppressWarnings("unused")
     @NotNull
     <E> Result<T, E> okOrElse(@NotNull final Supplier<E> error);
-
+    
     /**
      * Calls the provided {@link Consumer} on the contained value (if Some).
      *
@@ -419,7 +420,7 @@ public sealed interface Option<T> permits Some, None {
      * @param inspector consumer function to trigger on the contained value (if Some).
      */
     void inspect(@NotNull final Consumer<T> inspector);
-
+    
     /**
      * Returns the contained Some value.
      * <p>
@@ -439,7 +440,7 @@ public sealed interface Option<T> permits Some, None {
      */
     @NotNull
     T unwrap() throws IllegalCallerException;
-
+    
     /**
      * Returns the contained Some value.
      * <p>
@@ -460,7 +461,7 @@ public sealed interface Option<T> permits Some, None {
      */
     @NotNull
     T expect(@Nullable final String errorMessage) throws IllegalCallerException;
-
+    
     /**
      * Returns the contained Some value or a provided default.
      * <p>
@@ -480,7 +481,7 @@ public sealed interface Option<T> permits Some, None {
      */
     @NotNull
     T unwrapOr(@NotNull final T defaultValue);
-
+    
     /**
      * Returns the contained Some value or computes it from a {@link Supplier}.
      *
@@ -499,7 +500,7 @@ public sealed interface Option<T> permits Some, None {
      */
     @NotNull
     T unwrapOrElse(@NotNull final Supplier<T> defaultValue);
-
+    
     /**
      * Returns None if the option is None, otherwise calls predicate with the wrapped value and returns:
      * <p>
@@ -526,7 +527,7 @@ public sealed interface Option<T> permits Some, None {
      */
     @NotNull
     Option<T> filter(@NotNull final Predicate<T> predicate);
-
+    
     /**
      * Returns None if the option is None, otherwise returns res.
      * <p>
@@ -553,7 +554,7 @@ public sealed interface Option<T> permits Some, None {
      */
     @NotNull
     <U> Option<U> and(@NotNull final Option<U> res);
-
+    
     /**
      * Returns None if the option is None, otherwise calls f with the wrapped value and returns the result.
      * <p>
@@ -583,7 +584,7 @@ public sealed interface Option<T> permits Some, None {
      */
     @NotNull
     <U> Option<U> andThen(@NotNull final Function<T, Option<U>> res);
-
+    
     /**
      * Returns the option if it contains a value, otherwise returns res.
      * <p>
@@ -609,7 +610,7 @@ public sealed interface Option<T> permits Some, None {
      */
     @NotNull
     Option<T> or(@NotNull final Option<T> res);
-
+    
     /**
      * Returns the option if it contains a value, otherwise calls the {@link Supplier} and returns the result.
      *
@@ -632,7 +633,7 @@ public sealed interface Option<T> permits Some, None {
      */
     @NotNull
     Option<T> orElse(@NotNull final Supplier<Option<T>> res);
-
+    
     /**
      * Returns Some if exactly one of self, res is Some, otherwise returns None.
      *
@@ -656,6 +657,384 @@ public sealed interface Option<T> permits Some, None {
     @SuppressWarnings("unused")
     @NotNull
     Option<T> xor(@NotNull final Option<T> res);
-
-
+    
+    //The following are the firstOf methods, they allow get the first value allowing to cast the different ok types
+    //a common class that every Ok value extends.
+    //
+    //This was automatically generated with the following Rust code:
+    //
+    //fn main() {
+    //    for n in 1..=12 {
+    //        println!("{}\n\n\n", create_first_ok(n).unwrap_or_default());
+    //    }
+    //}
+    //
+    //fn create_first_ok(n_of_errors:usize) -> Option<String> {
+    //    if n_of_errors==0{return None;}
+    //    let parameter_definition = (1..=n_of_errors).map(|n|format!("T{n} extends TCommon")).collect::<Vec<_>>().join(", ");
+    //    let argument_definition = (1..=n_of_errors).map(|n|format!("@NotNull Option<T{n}> option{n}")).collect::<Vec<_>>().join(",\n");
+    //    let return_errors = (1..=n_of_errors).map(|n|format!("if (requireNonNull(option{n}) instanceof Some(var value))
+    //            return new Some<>(value);")).collect::<Vec<_>>().join("\n");
+    //
+    //    let function = format!("/**\n * Returns the first {{@link Ok}}, and if there is none, it returns an {{@link None}}.\n */ \n\
+    //    @NotNull\n public static <TCommon, {parameter_definition}> Option<TCommon> firstOf(\n{argument_definition}\n){{\n\
+    //         {return_errors}
+    //         return new None<>();
+    //    }}");
+    //    Some(function)
+    //}
+    
+    /**
+     * Returns the first {@link Ok}, and if there is none, it returns an {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon> Option<TCommon> firstOf(
+            @NotNull Option<T1> option1
+    ) {
+        if (requireNonNull(option1) instanceof Some(var value))
+            return new Some<>(value);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Ok}, and if there is none, it returns an {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, T2 extends TCommon> Option<TCommon> firstOf(
+            @NotNull Option<T1> option1,
+            @NotNull Option<T2> option2
+    ) {
+        if (requireNonNull(option1) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option2) instanceof Some(var value))
+            return new Some<>(value);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Ok}, and if there is none, it returns an {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, T2 extends TCommon, T3 extends TCommon> Option<TCommon> firstOf(
+            @NotNull Option<T1> option1,
+            @NotNull Option<T2> option2,
+            @NotNull Option<T3> option3
+    ) {
+        if (requireNonNull(option1) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option2) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option3) instanceof Some(var value))
+            return new Some<>(value);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Ok}, and if there is none, it returns an {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, T2 extends TCommon, T3 extends TCommon, T4 extends TCommon> Option<TCommon> firstOf(
+            @NotNull Option<T1> option1,
+            @NotNull Option<T2> option2,
+            @NotNull Option<T3> option3,
+            @NotNull Option<T4> option4
+    ) {
+        if (requireNonNull(option1) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option2) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option3) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option4) instanceof Some(var value))
+            return new Some<>(value);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Ok}, and if there is none, it returns an {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, T2 extends TCommon, T3 extends TCommon, T4 extends TCommon, T5 extends TCommon> Option<TCommon> firstOf(
+            @NotNull Option<T1> option1,
+            @NotNull Option<T2> option2,
+            @NotNull Option<T3> option3,
+            @NotNull Option<T4> option4,
+            @NotNull Option<T5> option5
+    ) {
+        if (requireNonNull(option1) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option2) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option3) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option4) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option5) instanceof Some(var value))
+            return new Some<>(value);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Ok}, and if there is none, it returns an {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, T2 extends TCommon, T3 extends TCommon, T4 extends TCommon, T5 extends TCommon, T6 extends TCommon> Option<TCommon> firstOf(
+            @NotNull Option<T1> option1,
+            @NotNull Option<T2> option2,
+            @NotNull Option<T3> option3,
+            @NotNull Option<T4> option4,
+            @NotNull Option<T5> option5,
+            @NotNull Option<T6> option6
+    ) {
+        if (requireNonNull(option1) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option2) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option3) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option4) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option5) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option6) instanceof Some(var value))
+            return new Some<>(value);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Ok}, and if there is none, it returns an {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, T2 extends TCommon, T3 extends TCommon, T4 extends TCommon, T5 extends TCommon, T6 extends TCommon, T7 extends TCommon> Option<TCommon> firstOf(
+            @NotNull Option<T1> option1,
+            @NotNull Option<T2> option2,
+            @NotNull Option<T3> option3,
+            @NotNull Option<T4> option4,
+            @NotNull Option<T5> option5,
+            @NotNull Option<T6> option6,
+            @NotNull Option<T7> option7
+    ) {
+        if (requireNonNull(option1) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option2) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option3) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option4) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option5) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option6) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option7) instanceof Some(var value))
+            return new Some<>(value);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Ok}, and if there is none, it returns an {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, T2 extends TCommon, T3 extends TCommon, T4 extends TCommon, T5 extends TCommon, T6 extends TCommon, T7 extends TCommon, T8 extends TCommon> Option<TCommon> firstOf(
+            @NotNull Option<T1> option1,
+            @NotNull Option<T2> option2,
+            @NotNull Option<T3> option3,
+            @NotNull Option<T4> option4,
+            @NotNull Option<T5> option5,
+            @NotNull Option<T6> option6,
+            @NotNull Option<T7> option7,
+            @NotNull Option<T8> option8
+    ) {
+        if (requireNonNull(option1) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option2) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option3) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option4) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option5) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option6) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option7) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option8) instanceof Some(var value))
+            return new Some<>(value);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Ok}, and if there is none, it returns an {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, T2 extends TCommon, T3 extends TCommon, T4 extends TCommon, T5 extends TCommon, T6 extends TCommon, T7 extends TCommon, T8 extends TCommon, T9 extends TCommon> Option<TCommon> firstOf(
+            @NotNull Option<T1> option1,
+            @NotNull Option<T2> option2,
+            @NotNull Option<T3> option3,
+            @NotNull Option<T4> option4,
+            @NotNull Option<T5> option5,
+            @NotNull Option<T6> option6,
+            @NotNull Option<T7> option7,
+            @NotNull Option<T8> option8,
+            @NotNull Option<T9> option9
+    ) {
+        if (requireNonNull(option1) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option2) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option3) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option4) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option5) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option6) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option7) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option8) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option9) instanceof Some(var value))
+            return new Some<>(value);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Ok}, and if there is none, it returns an {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, T2 extends TCommon, T3 extends TCommon, T4 extends TCommon, T5 extends TCommon, T6 extends TCommon, T7 extends TCommon, T8 extends TCommon, T9 extends TCommon, T10 extends TCommon> Option<TCommon> firstOf(
+            @NotNull Option<T1> option1,
+            @NotNull Option<T2> option2,
+            @NotNull Option<T3> option3,
+            @NotNull Option<T4> option4,
+            @NotNull Option<T5> option5,
+            @NotNull Option<T6> option6,
+            @NotNull Option<T7> option7,
+            @NotNull Option<T8> option8,
+            @NotNull Option<T9> option9,
+            @NotNull Option<T10> option10
+    ) {
+        if (requireNonNull(option1) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option2) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option3) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option4) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option5) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option6) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option7) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option8) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option9) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option10) instanceof Some(var value))
+            return new Some<>(value);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Ok}, and if there is none, it returns an {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, T2 extends TCommon, T3 extends TCommon, T4 extends TCommon, T5 extends TCommon, T6 extends TCommon, T7 extends TCommon, T8 extends TCommon, T9 extends TCommon, T10 extends TCommon, T11 extends TCommon> Option<TCommon> firstOf(
+            @NotNull Option<T1> option1,
+            @NotNull Option<T2> option2,
+            @NotNull Option<T3> option3,
+            @NotNull Option<T4> option4,
+            @NotNull Option<T5> option5,
+            @NotNull Option<T6> option6,
+            @NotNull Option<T7> option7,
+            @NotNull Option<T8> option8,
+            @NotNull Option<T9> option9,
+            @NotNull Option<T10> option10,
+            @NotNull Option<T11> option11
+    ) {
+        if (requireNonNull(option1) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option2) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option3) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option4) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option5) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option6) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option7) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option8) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option9) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option10) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option11) instanceof Some(var value))
+            return new Some<>(value);
+        return new None<>();
+    }
+    
+    /**
+     * Returns the first {@link Ok}, and if there is none, it returns an {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, T2 extends TCommon, T3 extends TCommon, T4 extends TCommon, T5 extends TCommon, T6 extends TCommon, T7 extends TCommon, T8 extends TCommon, T9 extends TCommon, T10 extends TCommon, T11 extends TCommon, T12 extends TCommon> Option<TCommon> firstOf(
+            @NotNull Option<T1> option1,
+            @NotNull Option<T2> option2,
+            @NotNull Option<T3> option3,
+            @NotNull Option<T4> option4,
+            @NotNull Option<T5> option5,
+            @NotNull Option<T6> option6,
+            @NotNull Option<T7> option7,
+            @NotNull Option<T8> option8,
+            @NotNull Option<T9> option9,
+            @NotNull Option<T10> option10,
+            @NotNull Option<T11> option11,
+            @NotNull Option<T12> option12
+    ) {
+        if (requireNonNull(option1) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option2) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option3) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option4) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option5) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option6) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option7) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option8) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option9) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option10) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option11) instanceof Some(var value))
+            return new Some<>(value);
+        if (requireNonNull(option12) instanceof Some(var value))
+            return new Some<>(value);
+        return new None<>();
+    }
+    
+    
 }

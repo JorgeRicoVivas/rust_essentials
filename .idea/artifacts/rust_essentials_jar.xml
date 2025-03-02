@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="rust_essentials:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/rust_essentials_jar</output-path>
+    <root id="archive" name="rust_essentials.jar">
+      <element id="module-output" name="rust_essentials" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/annotations/24.1.0/annotations-24.1.0.jar" path-in-jar="/" />
+      <element id="module-source" name="rust_essentials" />
+      <element id="dir-copy" path="$PROJECT_DIR$/docs" />
+      <element id="file-copy" path="$PROJECT_DIR$/pom.xml" />
+      <element id="file-copy" path="$PROJECT_DIR$/LICENSE" />
+      <element id="file-copy" path="$PROJECT_DIR$/README.md" />
+    </root>
+  </artifact>
+</component>

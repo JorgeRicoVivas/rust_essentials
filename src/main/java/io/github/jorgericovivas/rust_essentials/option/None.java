@@ -5,6 +5,7 @@ import io.github.jorgericovivas.rust_essentials.result.Result;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -29,7 +30,7 @@ import static java.util.Objects.requireNonNull;
  * @author Jorge Rico Vivas
  * @see Option
  */
-public record None<T>() implements Option<T> {
+public record None<T>() implements Option<T>, Serializable {
 
     /**
      * Returns false.

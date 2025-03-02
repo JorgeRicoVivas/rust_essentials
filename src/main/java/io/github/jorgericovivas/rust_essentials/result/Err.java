@@ -6,6 +6,7 @@ import io.github.jorgericovivas.rust_essentials.option.Some;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -25,7 +26,7 @@ import static java.util.Objects.requireNonNull;
  * @see Result
  */
 
-public record Err<T, E>(@NotNull E error) implements Result<T, E> {
+public record Err<T, E>(@NotNull E error) implements Result<T, E>, Serializable {
 
     /**
      * Default constructor requiring error to not be null.

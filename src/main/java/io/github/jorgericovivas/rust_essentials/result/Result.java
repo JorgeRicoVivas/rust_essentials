@@ -7,6 +7,7 @@ import io.github.jorgericovivas.rust_essentials.tuples.Tuple0;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -116,7 +117,7 @@ import static java.util.Objects.requireNonNull;
  *         case Tuple2Record(Err<?, ?> ignored, Ok(var secondContents)) -> Result.ok(secondContents);
  *         case Tuple2Record(Err(var firstError), var ignored) -> Result.err(firstError);
  *     };
- *     return Result.unwrap_or_throw(contents);
+ *     return Result.unwrapOrThrow(contents);
  * }
  *
  *
@@ -186,8 +187,8 @@ import static java.util.Objects.requireNonNull;
  * @param <E> Type of error state.
  * @author Jorge Rico Vivas
  */
-public sealed interface Result<T, E> permits Ok, Err {
-
+public sealed interface Result<T, E> extends Serializable permits Ok, Err {
+    
     /**
      * Executes the runnable and gets a {@link Ok} value with a None, returning an {@link Err} only if it couldn't
      * execute the operation and caught its exception.
@@ -223,7 +224,7 @@ public sealed interface Result<T, E> permits Ok, Err {
         }
         return new Ok<>(value);
     }
-
+    
     /**
      * Executes the runnable and gets a {@link Ok} value with a {@link Tuple0} (As an empty object), returning an
      * {@link Err} only if it couldn't execute the operation and caught its exception.
@@ -261,7 +262,7 @@ public sealed interface Result<T, E> permits Ok, Err {
         }
         return new Ok<>(new Tuple0());
     }
-
+    
     /**
      * Executes the supplier and gets a {@link Ok} value with the result of it, returning an {@link Err} only if it
      * couldn't execute the operation and caught its exception, which contains the exception that happened.
@@ -296,14 +297,15 @@ public sealed interface Result<T, E> permits Ok, Err {
                 return new Err<>(castedError);
             } catch (ClassCastException ex) {
                 RuntimeException couldNotCast = new RuntimeException("Exception was expected to be of type " +
-                        errorClass.getName() + ", but it is " + e.getClass().getName(), ex);
+                                                                             errorClass.getName() + ", but it is " + e.getClass()
+                                                                                                                      .getName(), ex);
                 couldNotCast.setStackTrace(new StackTraceElement[]{});
                 throw couldNotCast;
             }
         }
         return new Ok<>(value);
     }
-
+    
     /**
      * Executes the runnable and gets a {@link Ok} value with a {@link Tuple0} (As an empty object), returning an
      * {@link Err} only if it couldn't execute the operation and caught its exception.
@@ -338,14 +340,15 @@ public sealed interface Result<T, E> permits Ok, Err {
                 return new Err<>(castedError);
             } catch (ClassCastException ex) {
                 RuntimeException couldNotCast = new RuntimeException("Exception was expected to be of type " +
-                        errorClass.getName() + ", but it is " + e.getClass().getName(), ex);
+                                                                             errorClass.getName() + ", but it is " + e.getClass()
+                                                                                                                      .getName(), ex);
                 couldNotCast.setStackTrace(new StackTraceElement[]{});
                 throw couldNotCast;
             }
         }
         return new Ok<>(new Tuple0());
     }
-
+    
     /**
      * Gets the contents of the result if is {@link Ok}, or throws the exception contained in {@link Err}'s
      * {@link Err#error()}.
@@ -355,7 +358,7 @@ public sealed interface Result<T, E> permits Ok, Err {
      * {@code
      * Result<String, IOException> readFileRes = Result.checked(() -> Files.readString(Path.of("my_file.txt")));
      * try {
-     *     System.out.println("Contents of file are "+ Result.unwrap_or_throw(readFileRes));
+     *     System.out.println("Contents of file are "+ Result.unwrapOrThrow(readFileRes));
      * } catch (IOException e) {
      *     System.out.println("Found IOException! "+e);
      * }
@@ -370,13 +373,13 @@ public sealed interface Result<T, E> permits Ok, Err {
      */
     @SuppressWarnings("unused")
     @NotNull
-    static <T, E extends Throwable> T unwrap_or_throw(Result<T, E> result) throws E {
+    static <T, E extends Throwable> T unwrapOrThrow(Result<T, E> result) throws E {
         if (result.isOk()) {
             return result.unwrap();
         }
         throw result.unwrapErr();
     }
-
+    
     /**
      * Turns this value into {@link Ok}, and it is the same as using {@link Ok}'s default constructor.
      *
@@ -399,7 +402,7 @@ public sealed interface Result<T, E> permits Ok, Err {
     static <T, E> Ok<T, E> ok(@NotNull final T value) {
         return new Ok<>(value);
     }
-
+    
     /**
      * Turns this error value into {@link Err}, and it is the same as using {@link Err}'s default constructor.
      *
@@ -422,7 +425,7 @@ public sealed interface Result<T, E> permits Ok, Err {
     static <T, E> Err<T, E> err(@NotNull final E error) {
         return new Err<>(error);
     }
-
+    
     /**
      * Converts from {@link Result}&lt;{@link Result}&lt;T, E&gt;, E&gt; to {@link Result}&lt;T, E&gt;.
      *
@@ -452,7 +455,7 @@ public sealed interface Result<T, E> permits Ok, Err {
         }
         return new Ok<>(requireNonNull(requireNonNull(result.unwrap()).unwrap()));
     }
-
+    
     /**
      * Transposes a {@link Result} of an {@link Option} into an {@link Option} of a {@link Result}.
      * <p>
@@ -485,7 +488,7 @@ public sealed interface Result<T, E> permits Ok, Err {
         }
         return new None<>();
     }
-
+    
     /**
      * Returns true if the result is Ok.
      *
@@ -510,7 +513,7 @@ public sealed interface Result<T, E> permits Ok, Err {
      * @return true if the result is Ok.
      */
     boolean isOk();
-
+    
     /**
      * Returns true if the result is Ok and the value inside of it matches a predicate.
      *
@@ -537,7 +540,7 @@ public sealed interface Result<T, E> permits Ok, Err {
      */
     @SuppressWarnings("unused")
     boolean isOkAnd(@NotNull final Predicate<T> predicate);
-
+    
     /**
      * Returns true if the result is Err.
      *
@@ -562,7 +565,7 @@ public sealed interface Result<T, E> permits Ok, Err {
      * @return true if the result is Err.
      */
     boolean isErr();
-
+    
     /**
      * Returns true if the result is Err and the value inside of it matches a predicate.
      *
@@ -589,7 +592,7 @@ public sealed interface Result<T, E> permits Ok, Err {
      */
     @SuppressWarnings("unused")
     boolean isErrAnd(@NotNull final Predicate<E> predicate);
-
+    
     /**
      * Converts from Result&lt;T, E&gt; to Option&lt;T&gt;.
      *
@@ -610,7 +613,7 @@ public sealed interface Result<T, E> permits Ok, Err {
      */
     @NotNull
     Option<T> ok();
-
+    
     /**
      * Converts from Result&lt;T, E&gt; to Option&lt;E&gt;.
      *
@@ -631,7 +634,7 @@ public sealed interface Result<T, E> permits Ok, Err {
      */
     @NotNull
     Option<E> err();
-
+    
     /**
      * Maps a Result&lt;T, E&gt; to Result&lt;U, E&gt; by applying a function to a contained Ok value, leaving an Err
      * value untouched.
@@ -663,7 +666,7 @@ public sealed interface Result<T, E> permits Ok, Err {
      */
     @NotNull
     <U> Result<U, E> map(@NotNull final Function<T, U> mapper);
-
+    
     /**
      * Returns the provided default (if Err), or applies a function to the contained value (if Ok).
      * <p>
@@ -697,7 +700,7 @@ public sealed interface Result<T, E> permits Ok, Err {
      */
     @NotNull
     <U> U mapOr(@NotNull final U defaultValue, @NotNull final Function<T, U> mapper);
-
+    
     /**
      * Maps a Result&lt;T, E&gt; to U by applying fallback function default to a contained Err value, or function
      * defaultValueGetter to a contained Ok value.
@@ -732,7 +735,7 @@ public sealed interface Result<T, E> permits Ok, Err {
      */
     @NotNull
     <U> U mapOrElse(@NotNull final Supplier<U> defaultValue, @NotNull final Function<T, U> mapper);
-
+    
     /**
      * Maps a Result&lt;T, E&gt; to Result&lt;T, F&gt; by applying a function to a contained Err value, leaving an Ok
      * value untouched.
@@ -766,7 +769,7 @@ public sealed interface Result<T, E> permits Ok, Err {
     @SuppressWarnings("unused")
     @NotNull
     <O> Result<T, O> mapError(@NotNull final Function<E, O> errorMapper);
-
+    
     /**
      * Calls the provided {@link Consumer} on the contained value (if Ok).
      *
@@ -787,7 +790,7 @@ public sealed interface Result<T, E> permits Ok, Err {
      * @param inspector consumer function to trigger on the contained value (if Ok).
      */
     void inspect(@NotNull final Consumer<T> inspector);
-
+    
     /**
      * Calls the provided consumer function on the contained error (if Err).
      *
@@ -809,7 +812,7 @@ public sealed interface Result<T, E> permits Ok, Err {
      */
     @SuppressWarnings("unused")
     void inspectErr(@NotNull final Consumer<E> inspector);
-
+    
     /**
      * Returns the contained Ok value.
      * <p>
@@ -861,7 +864,7 @@ public sealed interface Result<T, E> permits Ok, Err {
      */
     @NotNull
     T unwrap() throws IllegalCallerException;
-
+    
     /**
      * Returns the contained Ok value.
      * <p>
@@ -915,7 +918,7 @@ public sealed interface Result<T, E> permits Ok, Err {
      */
     @NotNull
     T expect(@Nullable final String errorMessage) throws IllegalCallerException;
-
+    
     /**
      * Returns the contained Ok value or a provided default.
      * <p>
@@ -967,7 +970,7 @@ public sealed interface Result<T, E> permits Ok, Err {
      */
     @NotNull
     T unwrapOr(@NotNull final T defaultValue);
-
+    
     /**
      * Returns the contained Ok value or computes it from a {@link Supplier}.
      *
@@ -1018,7 +1021,7 @@ public sealed interface Result<T, E> permits Ok, Err {
      */
     @NotNull
     T unwrapOrElse(@NotNull final Supplier<T> defaultValue);
-
+    
     /**
      * Returns the contained Err value.
      *
@@ -1067,7 +1070,7 @@ public sealed interface Result<T, E> permits Ok, Err {
      */
     @NotNull
     E unwrapErr() throws IllegalCallerException;
-
+    
     /**
      * Returns the contained Err value.
      *
@@ -1118,7 +1121,7 @@ public sealed interface Result<T, E> permits Ok, Err {
     @SuppressWarnings("unused")
     @NotNull
     E expectErr(@Nullable final String errorMessage) throws IllegalCallerException;
-
+    
     /**
      * Returns res if the result is Ok, otherwise returns the Err value of this Result.
      * <p>
@@ -1153,7 +1156,7 @@ public sealed interface Result<T, E> permits Ok, Err {
      */
     @NotNull
     <U> Result<U, E> and(@NotNull final Result<U, E> res);
-
+    
     /**
      * Returns the resulting of calling op over the value if Ok, otherwise returns the Err value of this Result.
      * <p>
@@ -1187,7 +1190,7 @@ public sealed interface Result<T, E> permits Ok, Err {
      */
     @NotNull
     <U> Result<U, E> andThen(@NotNull final Function<T, Result<U, E>> res);
-
+    
     /**
      * Returns res if the result is Err, otherwise returns the Ok value of this Result.
      * <p>
@@ -1222,7 +1225,7 @@ public sealed interface Result<T, E> permits Ok, Err {
      */
     @NotNull
     <O> Result<T, O> or(@NotNull final Result<T, O> res);
-
+    
     /**
      * Returns the resulting of calling op over the value if Err, otherwise returns the Ok value of self.
      * <p>
@@ -1256,5 +1259,1707 @@ public sealed interface Result<T, E> permits Ok, Err {
      */
     @NotNull
     <O> Result<T, O> orElse(@NotNull final Function<E, Result<T, O>> res);
-
+    
+    
+    //The following are the joinOks methods, they allow to join multiple Oks whose value type are the same,allowing
+    //to cast the Ok types to a common class that every Ok value extends.
+    //
+    //This was automatically generated with the following Rust code:
+    //
+    //fn main() {
+    //    for n in 1..=12 {
+    //        println!("{}\n\n\n", create_join_oks(n).unwrap_or_default());
+    //    }
+    //}
+    //
+    //fn create_join_oks(n_of_errors:usize) -> Option<String> {
+    //    if n_of_errors==0{return None;}
+    //    let parameter_definition = (1..=n_of_errors).map(|n|format!("T{n} extends TCommon")).collect::<Vec<_>>().join(", ");
+    //    let argument_definition = (1..=n_of_errors).map(|n|format!("@NotNull Result<T{n}, E> ok{n}")).collect::<Vec<_>>().join(",\n");
+    //    let return_errors = (1..=n_of_errors).map(|n|format!("if (requireNonNull(ok{n}) instanceof Ok(var okValue))
+    //            return new Some<>(new Ok<>(okValue));")).collect::<Vec<_>>().join("\n");
+    //
+    //    let function = format!("/**\n * Returns the first {{@link Result}} that is {{@link Ok}}, otherwise, it returns a {{@link None}}.\n */ \n\
+    //    @NotNull\n public static <TCommon, E, {parameter_definition}> Option<Result<TCommon, E>> joinOks(\n{argument_definition}\n){{\n\
+    //         {return_errors}
+    //         return new None<>();
+    //    }}");
+    //    Some(function)
+    //}
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, E, T1 extends TCommon> Option<Result<TCommon, E>> joinOks(
+            @NotNull Result<T1, E> ok1
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, E, T1 extends TCommon, T2 extends TCommon> Option<Result<TCommon, E>> joinOks(
+            @NotNull Result<T1, E> ok1,
+            @NotNull Result<T2, E> ok2
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, E, T1 extends TCommon, T2 extends TCommon, T3 extends TCommon> Option<Result<TCommon, E>> joinOks(
+            @NotNull Result<T1, E> ok1,
+            @NotNull Result<T2, E> ok2,
+            @NotNull Result<T3, E> ok3
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok3) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, E, T1 extends TCommon, T2 extends TCommon, T3 extends TCommon, T4 extends TCommon> Option<Result<TCommon, E>> joinOks(
+            @NotNull Result<T1, E> ok1,
+            @NotNull Result<T2, E> ok2,
+            @NotNull Result<T3, E> ok3,
+            @NotNull Result<T4, E> ok4
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok3) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok4) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, E, T1 extends TCommon, T2 extends TCommon, T3 extends TCommon, T4 extends TCommon, T5 extends TCommon> Option<Result<TCommon, E>> joinOks(
+            @NotNull Result<T1, E> ok1,
+            @NotNull Result<T2, E> ok2,
+            @NotNull Result<T3, E> ok3,
+            @NotNull Result<T4, E> ok4,
+            @NotNull Result<T5, E> ok5
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok3) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok4) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok5) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, E, T1 extends TCommon, T2 extends TCommon, T3 extends TCommon, T4 extends TCommon, T5 extends TCommon, T6 extends TCommon> Option<Result<TCommon, E>> joinOks(
+            @NotNull Result<T1, E> ok1,
+            @NotNull Result<T2, E> ok2,
+            @NotNull Result<T3, E> ok3,
+            @NotNull Result<T4, E> ok4,
+            @NotNull Result<T5, E> ok5,
+            @NotNull Result<T6, E> ok6
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok3) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok4) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok5) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok6) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, E, T1 extends TCommon, T2 extends TCommon, T3 extends TCommon, T4 extends TCommon, T5 extends TCommon, T6 extends TCommon, T7 extends TCommon> Option<Result<TCommon, E>> joinOks(
+            @NotNull Result<T1, E> ok1,
+            @NotNull Result<T2, E> ok2,
+            @NotNull Result<T3, E> ok3,
+            @NotNull Result<T4, E> ok4,
+            @NotNull Result<T5, E> ok5,
+            @NotNull Result<T6, E> ok6,
+            @NotNull Result<T7, E> ok7
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok3) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok4) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok5) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok6) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok7) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, E, T1 extends TCommon, T2 extends TCommon, T3 extends TCommon, T4 extends TCommon, T5 extends TCommon, T6 extends TCommon, T7 extends TCommon, T8 extends TCommon> Option<Result<TCommon, E>> joinOks(
+            @NotNull Result<T1, E> ok1,
+            @NotNull Result<T2, E> ok2,
+            @NotNull Result<T3, E> ok3,
+            @NotNull Result<T4, E> ok4,
+            @NotNull Result<T5, E> ok5,
+            @NotNull Result<T6, E> ok6,
+            @NotNull Result<T7, E> ok7,
+            @NotNull Result<T8, E> ok8
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok3) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok4) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok5) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok6) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok7) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok8) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, E, T1 extends TCommon, T2 extends TCommon, T3 extends TCommon, T4 extends TCommon, T5 extends TCommon, T6 extends TCommon, T7 extends TCommon, T8 extends TCommon, T9 extends TCommon> Option<Result<TCommon, E>> joinOks(
+            @NotNull Result<T1, E> ok1,
+            @NotNull Result<T2, E> ok2,
+            @NotNull Result<T3, E> ok3,
+            @NotNull Result<T4, E> ok4,
+            @NotNull Result<T5, E> ok5,
+            @NotNull Result<T6, E> ok6,
+            @NotNull Result<T7, E> ok7,
+            @NotNull Result<T8, E> ok8,
+            @NotNull Result<T9, E> ok9
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok3) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok4) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok5) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok6) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok7) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok8) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok9) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, E, T1 extends TCommon, T2 extends TCommon, T3 extends TCommon, T4 extends TCommon, T5 extends TCommon, T6 extends TCommon, T7 extends TCommon, T8 extends TCommon, T9 extends TCommon, T10 extends TCommon> Option<Result<TCommon, E>> joinOks(
+            @NotNull Result<T1, E> ok1,
+            @NotNull Result<T2, E> ok2,
+            @NotNull Result<T3, E> ok3,
+            @NotNull Result<T4, E> ok4,
+            @NotNull Result<T5, E> ok5,
+            @NotNull Result<T6, E> ok6,
+            @NotNull Result<T7, E> ok7,
+            @NotNull Result<T8, E> ok8,
+            @NotNull Result<T9, E> ok9,
+            @NotNull Result<T10, E> ok10
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok3) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok4) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok5) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok6) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok7) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok8) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok9) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok10) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, E, T1 extends TCommon, T2 extends TCommon, T3 extends TCommon, T4 extends TCommon, T5 extends TCommon, T6 extends TCommon, T7 extends TCommon, T8 extends TCommon, T9 extends TCommon, T10 extends TCommon, T11 extends TCommon> Option<Result<TCommon, E>> joinOks(
+            @NotNull Result<T1, E> ok1,
+            @NotNull Result<T2, E> ok2,
+            @NotNull Result<T3, E> ok3,
+            @NotNull Result<T4, E> ok4,
+            @NotNull Result<T5, E> ok5,
+            @NotNull Result<T6, E> ok6,
+            @NotNull Result<T7, E> ok7,
+            @NotNull Result<T8, E> ok8,
+            @NotNull Result<T9, E> ok9,
+            @NotNull Result<T10, E> ok10,
+            @NotNull Result<T11, E> ok11
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok3) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok4) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok5) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok6) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok7) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok8) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok9) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok10) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok11) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, E, T1 extends TCommon, T2 extends TCommon, T3 extends TCommon, T4 extends TCommon, T5 extends TCommon, T6 extends TCommon, T7 extends TCommon, T8 extends TCommon, T9 extends TCommon, T10 extends TCommon, T11 extends TCommon, T12 extends TCommon> Option<Result<TCommon, E>> joinOks(
+            @NotNull Result<T1, E> ok1,
+            @NotNull Result<T2, E> ok2,
+            @NotNull Result<T3, E> ok3,
+            @NotNull Result<T4, E> ok4,
+            @NotNull Result<T5, E> ok5,
+            @NotNull Result<T6, E> ok6,
+            @NotNull Result<T7, E> ok7,
+            @NotNull Result<T8, E> ok8,
+            @NotNull Result<T9, E> ok9,
+            @NotNull Result<T10, E> ok10,
+            @NotNull Result<T11, E> ok11,
+            @NotNull Result<T12, E> ok12
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok3) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok4) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok5) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok6) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok7) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok8) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok9) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok10) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok11) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        if (requireNonNull(ok12) instanceof Ok(var okValue))
+            return new Some<>(new Ok<>(okValue));
+        return new None<>();
+    }
+    
+    
+    //The following are the joinErrors methods, they allow to join multiple Errors whose value type are the same,
+    //allowing to cast the Error types to a common class that every Error value extends.
+    //
+    //This was automatically generated with the following Rust code:
+    //
+    //fn main() {
+    //    for n in 1..=12 {
+    //        println!("{}\n\n\n", create_join_errors(n).unwrap_or_default());
+    //    }
+    //}
+    //
+    //fn create_join_errors(n_of_errors:usize) -> Option<String> {
+    //    if n_of_errors==0{return None;}
+    //    let parameter_definition = (1..=n_of_errors).map(|n|format!("E{n} extends ECommon")).collect::<Vec<_>>().join(", ");
+    //    let argument_definition = (1..=n_of_errors).map(|n|format!("@NotNull Result<T, E{n}> error{n}")).collect::<Vec<_>>().join(",\n");
+    //    let return_errors = (1..=n_of_errors).map(|n|format!("if (requireNonNull(error{n}) instanceof Err(var error))
+    //            return new Some<>(new Err<>(error));")).collect::<Vec<_>>().join("\n");
+    //
+    //    let function = format!("/**\n * Returns the first {{@link Result}} that is {{@link Err}}, otherwise, it returns a {{@link None}}.\n */ \n\
+    //    @NotNull\n public static <T, ECommon, {parameter_definition}> Option<Result<T, ECommon>> joinErrors(\n{argument_definition}\n){{\n\
+    //         {return_errors}
+    //         return new None<>();
+    //    }}");
+    //    Some(function)
+    //}
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     *
+     * <p>Example of use:</p>
+     * <pre>
+     * {@code
+     * Ok<Integer, Number> okSix = Result.ok(6);
+     * Err<Integer, Double> errorSixAndHalf = Result.err(6.5);
+     * Err<Integer, Integer> errorSix = Result.err(6);
+     *
+     * Option<Result<Integer, Number>> firstError = Result.joinErrors(
+     *         okSix, errorSixAndHalf, errorSix
+     * );
+     *
+     * Assertions.assertEquals(firstError, Option.some(Result.err(6.5)));
+     * }
+     * </pre>
+     */
+    @NotNull
+    static <T, ECommon, E1 extends ECommon> Option<Result<T, ECommon>> joinErrors(
+            @NotNull Result<T, E1> error1
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     *
+     * <p>Example of use:</p>
+     * <pre>
+     * {@code
+     * Ok<Integer, Number> okSix = Result.ok(6);
+     * Err<Integer, Double> errorSixAndHalf = Result.err(6.5);
+     * Err<Integer, Integer> errorSix = Result.err(6);
+     *
+     * Option<Result<Integer, Number>> firstError = Result.joinErrors(
+     *         okSix, errorSixAndHalf, errorSix
+     * );
+     *
+     * Assertions.assertEquals(firstError, Option.some(Result.err(6.5)));
+     * }
+     * </pre>
+     */
+    @NotNull
+    static <T, ECommon, E1 extends ECommon, E2 extends ECommon> Option<Result<T, ECommon>> joinErrors(
+            @NotNull Result<T, E1> error1,
+            @NotNull Result<T, E2> error2
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     *
+     * <p>Example of use:</p>
+     * <pre>
+     * {@code
+     * Ok<Integer, Number> okSix = Result.ok(6);
+     * Err<Integer, Double> errorSixAndHalf = Result.err(6.5);
+     * Err<Integer, Integer> errorSix = Result.err(6);
+     *
+     * Option<Result<Integer, Number>> firstError = Result.joinErrors(
+     *         okSix, errorSixAndHalf, errorSix
+     * );
+     *
+     * Assertions.assertEquals(firstError, Option.some(Result.err(6.5)));
+     * }
+     * </pre>
+     */
+    @NotNull
+    static <T, ECommon, E1 extends ECommon, E2 extends ECommon, E3 extends ECommon> Option<Result<T, ECommon>> joinErrors(
+            @NotNull Result<T, E1> error1,
+            @NotNull Result<T, E2> error2,
+            @NotNull Result<T, E3> error3
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error3) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     *
+     * <p>Example of use:</p>
+     * <pre>
+     * {@code
+     * Ok<Integer, Number> okSix = Result.ok(6);
+     * Err<Integer, Double> errorSixAndHalf = Result.err(6.5);
+     * Err<Integer, Integer> errorSix = Result.err(6);
+     *
+     * Option<Result<Integer, Number>> firstError = Result.joinErrors(
+     *         okSix, errorSixAndHalf, errorSix
+     * );
+     *
+     * Assertions.assertEquals(firstError, Option.some(Result.err(6.5)));
+     * }
+     * </pre>
+     */
+    @NotNull
+    static <T, ECommon, E1 extends ECommon, E2 extends ECommon, E3 extends ECommon, E4 extends ECommon> Option<Result<T, ECommon>> joinErrors(
+            @NotNull Result<T, E1> error1,
+            @NotNull Result<T, E2> error2,
+            @NotNull Result<T, E3> error3,
+            @NotNull Result<T, E4> error4
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error3) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error4) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     *
+     * <p>Example of use:</p>
+     * <pre>
+     * {@code
+     * Ok<Integer, Number> okSix = Result.ok(6);
+     * Err<Integer, Double> errorSixAndHalf = Result.err(6.5);
+     * Err<Integer, Integer> errorSix = Result.err(6);
+     *
+     * Option<Result<Integer, Number>> firstError = Result.joinErrors(
+     *         okSix, errorSixAndHalf, errorSix
+     * );
+     *
+     * Assertions.assertEquals(firstError, Option.some(Result.err(6.5)));
+     * }
+     * </pre>
+     */
+    @NotNull
+    static <T, ECommon, E1 extends ECommon, E2 extends ECommon, E3 extends ECommon, E4 extends ECommon, E5 extends ECommon> Option<Result<T, ECommon>> joinErrors(
+            @NotNull Result<T, E1> error1,
+            @NotNull Result<T, E2> error2,
+            @NotNull Result<T, E3> error3,
+            @NotNull Result<T, E4> error4,
+            @NotNull Result<T, E5> error5
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error3) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error4) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error5) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     *
+     * <p>Example of use:</p>
+     * <pre>
+     * {@code
+     * Ok<Integer, Number> okSix = Result.ok(6);
+     * Err<Integer, Double> errorSixAndHalf = Result.err(6.5);
+     * Err<Integer, Integer> errorSix = Result.err(6);
+     *
+     * Option<Result<Integer, Number>> firstError = Result.joinErrors(
+     *         okSix, errorSixAndHalf, errorSix
+     * );
+     *
+     * Assertions.assertEquals(firstError, Option.some(Result.err(6.5)));
+     * }
+     * </pre>
+     */
+    @NotNull
+    static <T, ECommon, E1 extends ECommon, E2 extends ECommon, E3 extends ECommon, E4 extends ECommon, E5 extends ECommon, E6 extends ECommon> Option<Result<T, ECommon>> joinErrors(
+            @NotNull Result<T, E1> error1,
+            @NotNull Result<T, E2> error2,
+            @NotNull Result<T, E3> error3,
+            @NotNull Result<T, E4> error4,
+            @NotNull Result<T, E5> error5,
+            @NotNull Result<T, E6> error6
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error3) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error4) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error5) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error6) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     *
+     * <p>Example of use:</p>
+     * <pre>
+     * {@code
+     * Ok<Integer, Number> okSix = Result.ok(6);
+     * Err<Integer, Double> errorSixAndHalf = Result.err(6.5);
+     * Err<Integer, Integer> errorSix = Result.err(6);
+     *
+     * Option<Result<Integer, Number>> firstError = Result.joinErrors(
+     *         okSix, errorSixAndHalf, errorSix
+     * );
+     *
+     * Assertions.assertEquals(firstError, Option.some(Result.err(6.5)));
+     * }
+     * </pre>
+     */
+    @NotNull
+    static <T, ECommon, E1 extends ECommon, E2 extends ECommon, E3 extends ECommon, E4 extends ECommon, E5 extends ECommon, E6 extends ECommon, E7 extends ECommon> Option<Result<T, ECommon>> joinErrors(
+            @NotNull Result<T, E1> error1,
+            @NotNull Result<T, E2> error2,
+            @NotNull Result<T, E3> error3,
+            @NotNull Result<T, E4> error4,
+            @NotNull Result<T, E5> error5,
+            @NotNull Result<T, E6> error6,
+            @NotNull Result<T, E7> error7
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error3) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error4) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error5) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error6) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error7) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     *
+     * <p>Example of use:</p>
+     * <pre>
+     * {@code
+     * Ok<Integer, Number> okSix = Result.ok(6);
+     * Err<Integer, Double> errorSixAndHalf = Result.err(6.5);
+     * Err<Integer, Integer> errorSix = Result.err(6);
+     *
+     * Option<Result<Integer, Number>> firstError = Result.joinErrors(
+     *         okSix, errorSixAndHalf, errorSix
+     * );
+     *
+     * Assertions.assertEquals(firstError, Option.some(Result.err(6.5)));
+     * }
+     * </pre>
+     */
+    @NotNull
+    static <T, ECommon, E1 extends ECommon, E2 extends ECommon, E3 extends ECommon, E4 extends ECommon, E5 extends ECommon, E6 extends ECommon, E7 extends ECommon, E8 extends ECommon> Option<Result<T, ECommon>> joinErrors(
+            @NotNull Result<T, E1> error1,
+            @NotNull Result<T, E2> error2,
+            @NotNull Result<T, E3> error3,
+            @NotNull Result<T, E4> error4,
+            @NotNull Result<T, E5> error5,
+            @NotNull Result<T, E6> error6,
+            @NotNull Result<T, E7> error7,
+            @NotNull Result<T, E8> error8
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error3) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error4) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error5) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error6) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error7) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error8) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     *
+     * <p>Example of use:</p>
+     * <pre>
+     * {@code
+     * Ok<Integer, Number> okSix = Result.ok(6);
+     * Err<Integer, Double> errorSixAndHalf = Result.err(6.5);
+     * Err<Integer, Integer> errorSix = Result.err(6);
+     *
+     * Option<Result<Integer, Number>> firstError = Result.joinErrors(
+     *         okSix, errorSixAndHalf, errorSix
+     * );
+     *
+     * Assertions.assertEquals(firstError, Option.some(Result.err(6.5)));
+     * }
+     * </pre>
+     */
+    @NotNull
+    static <T, ECommon, E1 extends ECommon, E2 extends ECommon, E3 extends ECommon, E4 extends ECommon, E5 extends ECommon, E6 extends ECommon, E7 extends ECommon, E8 extends ECommon, E9 extends ECommon> Option<Result<T, ECommon>> joinErrors(
+            @NotNull Result<T, E1> error1,
+            @NotNull Result<T, E2> error2,
+            @NotNull Result<T, E3> error3,
+            @NotNull Result<T, E4> error4,
+            @NotNull Result<T, E5> error5,
+            @NotNull Result<T, E6> error6,
+            @NotNull Result<T, E7> error7,
+            @NotNull Result<T, E8> error8,
+            @NotNull Result<T, E9> error9
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error3) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error4) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error5) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error6) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error7) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error8) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error9) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     *
+     * <p>Example of use:</p>
+     * <pre>
+     * {@code
+     * Ok<Integer, Number> okSix = Result.ok(6);
+     * Err<Integer, Double> errorSixAndHalf = Result.err(6.5);
+     * Err<Integer, Integer> errorSix = Result.err(6);
+     *
+     * Option<Result<Integer, Number>> firstError = Result.joinErrors(
+     *         okSix, errorSixAndHalf, errorSix
+     * );
+     *
+     * Assertions.assertEquals(firstError, Option.some(Result.err(6.5)));
+     * }
+     * </pre>
+     */
+    @NotNull
+    static <T, ECommon, E1 extends ECommon, E2 extends ECommon, E3 extends ECommon, E4 extends ECommon, E5 extends ECommon, E6 extends ECommon, E7 extends ECommon, E8 extends ECommon, E9 extends ECommon, E10 extends ECommon> Option<Result<T, ECommon>> joinErrors(
+            @NotNull Result<T, E1> error1,
+            @NotNull Result<T, E2> error2,
+            @NotNull Result<T, E3> error3,
+            @NotNull Result<T, E4> error4,
+            @NotNull Result<T, E5> error5,
+            @NotNull Result<T, E6> error6,
+            @NotNull Result<T, E7> error7,
+            @NotNull Result<T, E8> error8,
+            @NotNull Result<T, E9> error9,
+            @NotNull Result<T, E10> error10
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error3) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error4) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error5) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error6) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error7) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error8) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error9) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error10) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     *
+     * <p>Example of use:</p>
+     * <pre>
+     * {@code
+     * Ok<Integer, Number> okSix = Result.ok(6);
+     * Err<Integer, Double> errorSixAndHalf = Result.err(6.5);
+     * Err<Integer, Integer> errorSix = Result.err(6);
+     *
+     * Option<Result<Integer, Number>> firstError = Result.joinErrors(
+     *         okSix, errorSixAndHalf, errorSix
+     * );
+     *
+     * Assertions.assertEquals(firstError, Option.some(Result.err(6.5)));
+     * }
+     * </pre>
+     */
+    @NotNull
+    static <T, ECommon, E1 extends ECommon, E2 extends ECommon, E3 extends ECommon, E4 extends ECommon, E5 extends ECommon, E6 extends ECommon, E7 extends ECommon, E8 extends ECommon, E9 extends ECommon, E10 extends ECommon, E11 extends ECommon> Option<Result<T, ECommon>> joinErrors(
+            @NotNull Result<T, E1> error1,
+            @NotNull Result<T, E2> error2,
+            @NotNull Result<T, E3> error3,
+            @NotNull Result<T, E4> error4,
+            @NotNull Result<T, E5> error5,
+            @NotNull Result<T, E6> error6,
+            @NotNull Result<T, E7> error7,
+            @NotNull Result<T, E8> error8,
+            @NotNull Result<T, E9> error9,
+            @NotNull Result<T, E10> error10,
+            @NotNull Result<T, E11> error11
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error3) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error4) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error5) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error6) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error7) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error8) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error9) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error10) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error11) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     *
+     * <p>Example of use:</p>
+     * <pre>
+     * {@code
+     * Ok<Integer, Number> okSix = Result.ok(6);
+     * Err<Integer, Double> errorSixAndHalf = Result.err(6.5);
+     * Err<Integer, Integer> errorSix = Result.err(6);
+     *
+     * Option<Result<Integer, Number>> firstError = Result.joinErrors(
+     *         okSix, errorSixAndHalf, errorSix
+     * );
+     *
+     * Assertions.assertEquals(firstError, Option.some(Result.err(6.5)));
+     * }
+     * </pre>
+     */
+    @NotNull
+    static <T, ECommon, E1 extends ECommon, E2 extends ECommon, E3 extends ECommon, E4 extends ECommon, E5 extends ECommon, E6 extends ECommon, E7 extends ECommon, E8 extends ECommon, E9 extends ECommon, E10 extends ECommon, E11 extends ECommon, E12 extends ECommon> Option<Result<T, ECommon>> joinErrors(
+            @NotNull Result<T, E1> error1,
+            @NotNull Result<T, E2> error2,
+            @NotNull Result<T, E3> error3,
+            @NotNull Result<T, E4> error4,
+            @NotNull Result<T, E5> error5,
+            @NotNull Result<T, E6> error6,
+            @NotNull Result<T, E7> error7,
+            @NotNull Result<T, E8> error8,
+            @NotNull Result<T, E9> error9,
+            @NotNull Result<T, E10> error10,
+            @NotNull Result<T, E11> error11,
+            @NotNull Result<T, E12> error12
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error3) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error4) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error5) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error6) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error7) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error8) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error9) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error10) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error11) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        if (requireNonNull(error12) instanceof Err(var error))
+            return new Some<>(new Err<>(error));
+        return new None<>();
+    }
+    
+    //The following are the firstError methods, they allow get the first Error value allowing to cast the Error types to
+    //a common class that every Error value extends, while the Value types can be different .
+    //
+    //This was automatically generated with the following Rust code:
+    //
+    //fn main() {
+    //    for n in 1..=12 {
+    //        println!("{}\n\n\n", create_join_errors(n).unwrap_or_default());
+    //    }
+    //}
+    //
+    //fn create_join_errors(n_of_errors:usize) -> Option<String> {
+    //    if n_of_errors==0{return None;}
+    //    let parameter_definition = (1..=n_of_errors).map(|n|format!("T{n}, E{n} extends ECommon")).collect::<Vec<_>>().join(", ");
+    //    let argument_definition = (1..=n_of_errors).map(|n|format!("@NotNull Result<T{n}, E{n}> error{n}")).collect::<Vec<_>>().join(",\n");
+    //    let return_errors = (1..=n_of_errors).map(|n|format!("if (requireNonNull(error{n}) instanceof Err(var error))
+    //            return new Some<>(error);")).collect::<Vec<_>>().join("\n");
+    //
+    //    let function = format!("/**\n * Returns the error value of the first {{@link Result}} that is {{@link Err}}, otherwise, it returns a {{@link None}}.\n */ \n\
+    //    @NotNull\n public static <ECommon, {parameter_definition}> Option<ECommon> firstError(\n{argument_definition}\n){{\n\
+    //         {return_errors}
+    //         return new None<>();
+    //    }}");
+    //    Some(function)
+    //}
+    
+    
+    /**
+     * Returns the error value of the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <ECommon, T1, E1 extends ECommon> Option<ECommon> firstError(
+            @NotNull Result<T1, E1> error1
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(error);
+        return new None<>();
+    }
+    
+    /**
+     * Returns the error value of the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <ECommon, T1, E1 extends ECommon, T2, E2 extends ECommon> Option<ECommon> firstError(
+            @NotNull Result<T1, E1> error1,
+            @NotNull Result<T2, E2> error2
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(error);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the error value of the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <ECommon, T1, E1 extends ECommon, T2, E2 extends ECommon, T3, E3 extends ECommon> Option<ECommon> firstError(
+            @NotNull Result<T1, E1> error1,
+            @NotNull Result<T2, E2> error2,
+            @NotNull Result<T3, E3> error3
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error3) instanceof Err(var error))
+            return new Some<>(error);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the error value of the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <ECommon, T1, E1 extends ECommon, T2, E2 extends ECommon, T3, E3 extends ECommon, T4, E4 extends ECommon> Option<ECommon> firstError(
+            @NotNull Result<T1, E1> error1,
+            @NotNull Result<T2, E2> error2,
+            @NotNull Result<T3, E3> error3,
+            @NotNull Result<T4, E4> error4
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error3) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error4) instanceof Err(var error))
+            return new Some<>(error);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the error value of the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <ECommon, T1, E1 extends ECommon, T2, E2 extends ECommon, T3, E3 extends ECommon, T4, E4 extends ECommon, T5, E5 extends ECommon> Option<ECommon> firstError(
+            @NotNull Result<T1, E1> error1,
+            @NotNull Result<T2, E2> error2,
+            @NotNull Result<T3, E3> error3,
+            @NotNull Result<T4, E4> error4,
+            @NotNull Result<T5, E5> error5
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error3) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error4) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error5) instanceof Err(var error))
+            return new Some<>(error);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the error value of the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <ECommon, T1, E1 extends ECommon, T2, E2 extends ECommon, T3, E3 extends ECommon, T4, E4 extends ECommon, T5, E5 extends ECommon, T6, E6 extends ECommon> Option<ECommon> firstError(
+            @NotNull Result<T1, E1> error1,
+            @NotNull Result<T2, E2> error2,
+            @NotNull Result<T3, E3> error3,
+            @NotNull Result<T4, E4> error4,
+            @NotNull Result<T5, E5> error5,
+            @NotNull Result<T6, E6> error6
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error3) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error4) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error5) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error6) instanceof Err(var error))
+            return new Some<>(error);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the error value of the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <ECommon, T1, E1 extends ECommon, T2, E2 extends ECommon, T3, E3 extends ECommon, T4, E4 extends ECommon, T5, E5 extends ECommon, T6, E6 extends ECommon, T7, E7 extends ECommon> Option<ECommon> firstError(
+            @NotNull Result<T1, E1> error1,
+            @NotNull Result<T2, E2> error2,
+            @NotNull Result<T3, E3> error3,
+            @NotNull Result<T4, E4> error4,
+            @NotNull Result<T5, E5> error5,
+            @NotNull Result<T6, E6> error6,
+            @NotNull Result<T7, E7> error7
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error3) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error4) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error5) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error6) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error7) instanceof Err(var error))
+            return new Some<>(error);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the error value of the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <ECommon, T1, E1 extends ECommon, T2, E2 extends ECommon, T3, E3 extends ECommon, T4, E4 extends ECommon, T5, E5 extends ECommon, T6, E6 extends ECommon, T7, E7 extends ECommon, T8, E8 extends ECommon> Option<ECommon> firstError(
+            @NotNull Result<T1, E1> error1,
+            @NotNull Result<T2, E2> error2,
+            @NotNull Result<T3, E3> error3,
+            @NotNull Result<T4, E4> error4,
+            @NotNull Result<T5, E5> error5,
+            @NotNull Result<T6, E6> error6,
+            @NotNull Result<T7, E7> error7,
+            @NotNull Result<T8, E8> error8
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error3) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error4) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error5) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error6) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error7) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error8) instanceof Err(var error))
+            return new Some<>(error);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the error value of the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <ECommon, T1, E1 extends ECommon, T2, E2 extends ECommon, T3, E3 extends ECommon, T4, E4 extends ECommon, T5, E5 extends ECommon, T6, E6 extends ECommon, T7, E7 extends ECommon, T8, E8 extends ECommon, T9, E9 extends ECommon> Option<ECommon> firstError(
+            @NotNull Result<T1, E1> error1,
+            @NotNull Result<T2, E2> error2,
+            @NotNull Result<T3, E3> error3,
+            @NotNull Result<T4, E4> error4,
+            @NotNull Result<T5, E5> error5,
+            @NotNull Result<T6, E6> error6,
+            @NotNull Result<T7, E7> error7,
+            @NotNull Result<T8, E8> error8,
+            @NotNull Result<T9, E9> error9
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error3) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error4) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error5) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error6) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error7) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error8) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error9) instanceof Err(var error))
+            return new Some<>(error);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the error value of the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <ECommon, T1, E1 extends ECommon, T2, E2 extends ECommon, T3, E3 extends ECommon, T4, E4 extends ECommon, T5, E5 extends ECommon, T6, E6 extends ECommon, T7, E7 extends ECommon, T8, E8 extends ECommon, T9, E9 extends ECommon, T10, E10 extends ECommon> Option<ECommon> firstError(
+            @NotNull Result<T1, E1> error1,
+            @NotNull Result<T2, E2> error2,
+            @NotNull Result<T3, E3> error3,
+            @NotNull Result<T4, E4> error4,
+            @NotNull Result<T5, E5> error5,
+            @NotNull Result<T6, E6> error6,
+            @NotNull Result<T7, E7> error7,
+            @NotNull Result<T8, E8> error8,
+            @NotNull Result<T9, E9> error9,
+            @NotNull Result<T10, E10> error10
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error3) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error4) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error5) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error6) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error7) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error8) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error9) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error10) instanceof Err(var error))
+            return new Some<>(error);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the error value of the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <ECommon, T1, E1 extends ECommon, T2, E2 extends ECommon, T3, E3 extends ECommon, T4, E4 extends ECommon, T5, E5 extends ECommon, T6, E6 extends ECommon, T7, E7 extends ECommon, T8, E8 extends ECommon, T9, E9 extends ECommon, T10, E10 extends ECommon, T11, E11 extends ECommon> Option<ECommon> firstError(
+            @NotNull Result<T1, E1> error1,
+            @NotNull Result<T2, E2> error2,
+            @NotNull Result<T3, E3> error3,
+            @NotNull Result<T4, E4> error4,
+            @NotNull Result<T5, E5> error5,
+            @NotNull Result<T6, E6> error6,
+            @NotNull Result<T7, E7> error7,
+            @NotNull Result<T8, E8> error8,
+            @NotNull Result<T9, E9> error9,
+            @NotNull Result<T10, E10> error10,
+            @NotNull Result<T11, E11> error11
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error3) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error4) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error5) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error6) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error7) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error8) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error9) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error10) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error11) instanceof Err(var error))
+            return new Some<>(error);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the error value of the first {@link Result} that is {@link Err}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <ECommon, T1, E1 extends ECommon, T2, E2 extends ECommon, T3, E3 extends ECommon, T4, E4 extends ECommon, T5, E5 extends ECommon, T6, E6 extends ECommon, T7, E7 extends ECommon, T8, E8 extends ECommon, T9, E9 extends ECommon, T10, E10 extends ECommon, T11, E11 extends ECommon, T12, E12 extends ECommon> Option<ECommon> firstError(
+            @NotNull Result<T1, E1> error1,
+            @NotNull Result<T2, E2> error2,
+            @NotNull Result<T3, E3> error3,
+            @NotNull Result<T4, E4> error4,
+            @NotNull Result<T5, E5> error5,
+            @NotNull Result<T6, E6> error6,
+            @NotNull Result<T7, E7> error7,
+            @NotNull Result<T8, E8> error8,
+            @NotNull Result<T9, E9> error9,
+            @NotNull Result<T10, E10> error10,
+            @NotNull Result<T11, E11> error11,
+            @NotNull Result<T12, E12> error12
+    ) {
+        if (requireNonNull(error1) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error2) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error3) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error4) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error5) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error6) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error7) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error8) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error9) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error10) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error11) instanceof Err(var error))
+            return new Some<>(error);
+        if (requireNonNull(error12) instanceof Err(var error))
+            return new Some<>(error);
+        return new None<>();
+    }
+    
+    
+    //The following are the firstPl methods, they allow get the first Pl value allowing to cast the Success types to
+    //a common class that every Ok value extends, while the Err types can be different .
+    //
+    //This was automatically generated with the following Rust code:
+    //
+    //fn main() {
+    //    for n in 3..=3 {
+    //        println!("{}\n\n\n", create_join_errors(n).unwrap_or_default());
+    //    }
+    //}
+    //
+    //fn create_join_errors(n_of_errors:usize) -> Option<String> {
+    //    if n_of_errors==0{return None;}
+    //    let parameter_definition = (1..=n_of_errors).map(|n|format!("T{n} extends TCommon, E{n}")).collect::<Vec<_>>().join(", ");
+    //    let argument_definition = (1..=n_of_errors).map(|n|format!("@NotNull Result<T{n}, E{n}> ok{n}")).collect::<Vec<_>>().join(",\n");
+    //    let return_errors = (1..=n_of_errors).map(|n|format!("if (requireNonNull(ok{n}) instanceof Ok(var okValue))
+    //            return new Some<>(okValue);")).collect::<Vec<_>>().join("\n");
+    //
+    //    let function = format!("/**\n * Returns the success value of the first {{@link Result}} that is {{@link Ok}}, otherwise, it returns a {{@link None}}.\n */ \n\
+    //    @NotNull\n public static <TCommon, {parameter_definition}> Option<TCommon> firstOk(\n{argument_definition}\n){{\n\
+    //         {return_errors}
+    //         return new None<>();
+    //    }}");
+    //    Some(function)
+    //}
+    
+    /**
+     * Returns the success value of the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, E1> Option<TCommon> firstOk(
+            @NotNull Result<T1, E1> ok1
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the success value of the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, E1, T2 extends TCommon, E2> Option<TCommon> firstOk(
+            @NotNull Result<T1, E1> ok1,
+            @NotNull Result<T2, E2> ok2
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the success value of the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, E1, T2 extends TCommon, E2, T3 extends TCommon, E3> Option<TCommon> firstOk(
+            @NotNull Result<T1, E1> ok1,
+            @NotNull Result<T2, E2> ok2,
+            @NotNull Result<T3, E3> ok3
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok3) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the success value of the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, E1, T2 extends TCommon, E2, T3 extends TCommon, E3, T4 extends TCommon, E4> Option<TCommon> firstOk(
+            @NotNull Result<T1, E1> ok1,
+            @NotNull Result<T2, E2> ok2,
+            @NotNull Result<T3, E3> ok3,
+            @NotNull Result<T4, E4> ok4
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok3) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok4) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the success value of the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, E1, T2 extends TCommon, E2, T3 extends TCommon, E3, T4 extends TCommon, E4, T5 extends TCommon, E5> Option<TCommon> firstOk(
+            @NotNull Result<T1, E1> ok1,
+            @NotNull Result<T2, E2> ok2,
+            @NotNull Result<T3, E3> ok3,
+            @NotNull Result<T4, E4> ok4,
+            @NotNull Result<T5, E5> ok5
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok3) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok4) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok5) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the success value of the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, E1, T2 extends TCommon, E2, T3 extends TCommon, E3, T4 extends TCommon, E4, T5 extends TCommon, E5, T6 extends TCommon, E6> Option<TCommon> firstOk(
+            @NotNull Result<T1, E1> ok1,
+            @NotNull Result<T2, E2> ok2,
+            @NotNull Result<T3, E3> ok3,
+            @NotNull Result<T4, E4> ok4,
+            @NotNull Result<T5, E5> ok5,
+            @NotNull Result<T6, E6> ok6
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok3) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok4) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok5) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok6) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the success value of the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, E1, T2 extends TCommon, E2, T3 extends TCommon, E3, T4 extends TCommon, E4, T5 extends TCommon, E5, T6 extends TCommon, E6, T7 extends TCommon, E7> Option<TCommon> firstOk(
+            @NotNull Result<T1, E1> ok1,
+            @NotNull Result<T2, E2> ok2,
+            @NotNull Result<T3, E3> ok3,
+            @NotNull Result<T4, E4> ok4,
+            @NotNull Result<T5, E5> ok5,
+            @NotNull Result<T6, E6> ok6,
+            @NotNull Result<T7, E7> ok7
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok3) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok4) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok5) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok6) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok7) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the success value of the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, E1, T2 extends TCommon, E2, T3 extends TCommon, E3, T4 extends TCommon, E4, T5 extends TCommon, E5, T6 extends TCommon, E6, T7 extends TCommon, E7, T8 extends TCommon, E8> Option<TCommon> firstOk(
+            @NotNull Result<T1, E1> ok1,
+            @NotNull Result<T2, E2> ok2,
+            @NotNull Result<T3, E3> ok3,
+            @NotNull Result<T4, E4> ok4,
+            @NotNull Result<T5, E5> ok5,
+            @NotNull Result<T6, E6> ok6,
+            @NotNull Result<T7, E7> ok7,
+            @NotNull Result<T8, E8> ok8
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok3) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok4) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok5) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok6) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok7) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok8) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the success value of the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, E1, T2 extends TCommon, E2, T3 extends TCommon, E3, T4 extends TCommon, E4, T5 extends TCommon, E5, T6 extends TCommon, E6, T7 extends TCommon, E7, T8 extends TCommon, E8, T9 extends TCommon, E9> Option<TCommon> firstOk(
+            @NotNull Result<T1, E1> ok1,
+            @NotNull Result<T2, E2> ok2,
+            @NotNull Result<T3, E3> ok3,
+            @NotNull Result<T4, E4> ok4,
+            @NotNull Result<T5, E5> ok5,
+            @NotNull Result<T6, E6> ok6,
+            @NotNull Result<T7, E7> ok7,
+            @NotNull Result<T8, E8> ok8,
+            @NotNull Result<T9, E9> ok9
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok3) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok4) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok5) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok6) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok7) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok8) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok9) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the success value of the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, E1, T2 extends TCommon, E2, T3 extends TCommon, E3, T4 extends TCommon, E4, T5 extends TCommon, E5, T6 extends TCommon, E6, T7 extends TCommon, E7, T8 extends TCommon, E8, T9 extends TCommon, E9, T10 extends TCommon, E10> Option<TCommon> firstOk(
+            @NotNull Result<T1, E1> ok1,
+            @NotNull Result<T2, E2> ok2,
+            @NotNull Result<T3, E3> ok3,
+            @NotNull Result<T4, E4> ok4,
+            @NotNull Result<T5, E5> ok5,
+            @NotNull Result<T6, E6> ok6,
+            @NotNull Result<T7, E7> ok7,
+            @NotNull Result<T8, E8> ok8,
+            @NotNull Result<T9, E9> ok9,
+            @NotNull Result<T10, E10> ok10
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok3) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok4) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok5) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok6) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok7) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok8) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok9) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok10) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the success value of the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, E1, T2 extends TCommon, E2, T3 extends TCommon, E3, T4 extends TCommon, E4, T5 extends TCommon, E5, T6 extends TCommon, E6, T7 extends TCommon, E7, T8 extends TCommon, E8, T9 extends TCommon, E9, T10 extends TCommon, E10, T11 extends TCommon, E11> Option<TCommon> firstOk(
+            @NotNull Result<T1, E1> ok1,
+            @NotNull Result<T2, E2> ok2,
+            @NotNull Result<T3, E3> ok3,
+            @NotNull Result<T4, E4> ok4,
+            @NotNull Result<T5, E5> ok5,
+            @NotNull Result<T6, E6> ok6,
+            @NotNull Result<T7, E7> ok7,
+            @NotNull Result<T8, E8> ok8,
+            @NotNull Result<T9, E9> ok9,
+            @NotNull Result<T10, E10> ok10,
+            @NotNull Result<T11, E11> ok11
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok3) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok4) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok5) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok6) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok7) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok8) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok9) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok10) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok11) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        return new None<>();
+    }
+    
+    
+    /**
+     * Returns the success value of the first {@link Result} that is {@link Ok}, otherwise, it returns a {@link None}.
+     */
+    @NotNull
+    static <TCommon, T1 extends TCommon, E1, T2 extends TCommon, E2, T3 extends TCommon, E3, T4 extends TCommon, E4, T5 extends TCommon, E5, T6 extends TCommon, E6, T7 extends TCommon, E7, T8 extends TCommon, E8, T9 extends TCommon, E9, T10 extends TCommon, E10, T11 extends TCommon, E11, T12 extends TCommon, E12> Option<TCommon> firstOk(
+            @NotNull Result<T1, E1> ok1,
+            @NotNull Result<T2, E2> ok2,
+            @NotNull Result<T3, E3> ok3,
+            @NotNull Result<T4, E4> ok4,
+            @NotNull Result<T5, E5> ok5,
+            @NotNull Result<T6, E6> ok6,
+            @NotNull Result<T7, E7> ok7,
+            @NotNull Result<T8, E8> ok8,
+            @NotNull Result<T9, E9> ok9,
+            @NotNull Result<T10, E10> ok10,
+            @NotNull Result<T11, E11> ok11,
+            @NotNull Result<T12, E12> ok12
+    ) {
+        if (requireNonNull(ok1) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok2) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok3) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok4) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok5) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok6) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok7) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok8) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok9) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok10) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok11) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        if (requireNonNull(ok12) instanceof Ok(var okValue))
+            return new Some<>(okValue);
+        return new None<>();
+    }
+    
+    
 }
