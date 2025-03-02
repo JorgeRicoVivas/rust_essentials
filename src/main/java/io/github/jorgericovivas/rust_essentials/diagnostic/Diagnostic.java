@@ -29,13 +29,13 @@ import java.util.stream.Stream;
  * <br>
  * This shows:
  * <br><br>
- * <strong><font color="red">Error:</font></strong> This is an error.<br><br>
+ * <strong><span style="color:red;">Error:</span></strong> This is an error.<br><br>
  * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This message tells what the error means.
  * <br><br><br>
- * <strong><font color="blue">Note:</font></strong> This is a note message.<br><br>
+ * <strong><span style="color:blue;">Note:</span></strong> This is a note message.<br><br>
  * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This message tells why the error happened.
  * <br><br><br>
- * <strong><font color="green">Help</font></strong>: This is a help message.<br><br>
+ * <strong><span style="color:green;">Help</span></strong>: This is a help message.<br><br>
  * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This message tells information to help solve in solving the
  * problem.
  * <br><br><br><br>
@@ -154,14 +154,15 @@ public class Diagnostic implements Serializable {
      * <br>
      * This shows:
      * <br><br>
-     * <strong><font color="red">Error:</font></strong> This is an error.<br><br>
+     * <strong><span style="color:red;">Error:</span></strong> This is an error.<br><br>
      * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This message tells what the error means.
      * <br><br><br>
-     * <strong><font color="blue">Note:</font></strong> This is a note message.<br><br>
+     * <strong><span style="color:blue;">Note:</span></strong> This is a note message.<br><br>
      * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This message tells why the error happened.
      * <br><br><br>
-     * <strong><font color="green">Help</font></strong>: This is a help message.<br><br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This message tells information to help solve in solving the problem.
+     * <strong><span style="color:green;">Help</span></strong>: This is a help message.<br><br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This message tells information to help solve in solving the
+     * problem.
      *
      * @param concept the main message to show when turning this diagnostic into a {@link String}.
      * @return self
@@ -192,14 +193,15 @@ public class Diagnostic implements Serializable {
      * <br>
      * This shows:
      * <br><br>
-     * <strong><font color="red">Error:</font></strong> This is an error.<br><br>
+     * <strong><span style="color:red;">Error:</span></strong> This is an error.<br><br>
      * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This message tells what the error means.
      * <br><br><br>
-     * <strong><font color="blue">Note:</font></strong> This is a note message.<br><br>
+     * <strong><span style="color:blue;">Note:</span></strong> This is a note message.<br><br>
      * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This message tells why the error happened.
      * <br><br><br>
-     * <strong><font color="green">Help</font></strong>: This is a help message.<br><br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This message tells information to help solve in solving the problem.
+     * <strong><span style="color:green;">Help</span></strong>: This is a help message.<br><br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This message tells information to help solve in solving the
+     * problem.
      *
      * @param helpMessage a new message with information on how to solve the problem that happened.
      * @return self
@@ -230,14 +232,15 @@ public class Diagnostic implements Serializable {
      * <br>
      * This shows:
      * <br><br>
-     * <strong><font color="red">Error:</font></strong> This is an error.<br><br>
+     * <strong><span style="color:red;">Error:</span></strong> This is an error.<br><br>
      * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This message tells what the error means.
      * <br><br><br>
-     * <strong><font color="blue">Note:</font></strong> This is a note message.<br><br>
+     * <strong><span style="color:blue;">Note:</span></strong> This is a note message.<br><br>
      * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This message tells why the error happened.
      * <br><br><br>
-     * <strong><font color="green">Help</font></strong>: This is a help message.<br><br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This message tells information to help solve in solving the problem.
+     * <strong><span style="color:green;">Help</span></strong>: This is a help message.<br><br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This message tells information to help solve in solving the
+     * problem.
      *
      * @param noteMessage a new message with information explaining the problem that happened.
      * @return self
@@ -260,20 +263,21 @@ public class Diagnostic implements Serializable {
      *         .withConcept("This is an error.\nThis message tells what the error means.")
      *         .withNote("This is a note message.\nThis message tells why the error happened.")
      *         .withHelp("This is a help message.\nThis message tells information to help solve in solving the problem.");
-     * System.out.println(diagnostic.toString());
+     * System.out.println(diagnostic);
      * }
      * </pre>
      * <br>
      * This shows:
      * <br><br>
-     * <strong><font color="red">Error:</font></strong> This is an error.<br><br>
+     * <strong><span style="color:red;">Error:</span></strong> This is an error.<br><br>
      * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This message tells what the error means.
      * <br><br><br>
-     * <strong><font color="blue">Note:</font></strong> This is a note message.<br><br>
+     * <strong><span style="color:blue;">Note:</span></strong> This is a note message.<br><br>
      * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This message tells why the error happened.
      * <br><br><br>
-     * <strong><font color="green">Help</font></strong>: This is a help message.<br><br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This message tells information to help solve in solving the problem.
+     * <strong><span style="color:green;">Help</span></strong>: This is a help message.<br><br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This message tells information to help solve in solving the
+     * problem.
      *
      * @return this diagnostic into a user-friendly message.
      */
